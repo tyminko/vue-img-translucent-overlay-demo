@@ -1,28 +1,33 @@
 <template>
   <div class="demo">
     <h1></h1>
-    <img-with-overlay
+    <img-w-overlay
       src="https://c.pxhere.com/photos/ae/03/forest_in_the_woods_mountain_adherent_foliage_slovakia_summer_lu_enec-509390.jpg!d"
-      :o-blur="2"
+      :o-blur="10"
       :o-fill-opacity="0.5"
       class="img-with-over">
       <div class="label">Text Text</div>
       <div class="footer">
-        <expandable-text use-click>
-          Lorem ipsum dolor sit amet, consectetur adipisicing elit. Veniam, libero quos cumque, quia rerum natus adipisci modi neque esse fugit est tempore! Vel repellendus voluptates voluptatum dolores sit ut officiis!
-        </expandable-text>
+        <div class="expand-wrap io-scrollable">
+          <expandable-text use-click>
+            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Veniam, libero quos cumque, quia rerum natus adipisci modi neque esse fugit est tempore! Vel repellendus voluptates voluptatum dolores sit ut officiis!
+            Animi, ab accusantium, eos repellendus ducimus ad rem numquam, expedita incidunt temporibus asperiores! Rerum culpa assumenda sunt quis praesentium inventore asperiores labore!
+            Beatae enim commodi sed necessitatibus excepturi ut temporibus voluptates quasi laudantium blanditiis, quidem, dicta reprehenderit ea laborum laboriosam, autem possimus quia aliquam.
+          </expandable-text>
+        </div>
       </div>
-    </img-with-overlay>
+      <button>AAA</button>
+    </img-w-overlay>
   </div>
 </template>
 
 <script>
-import ExpandableText from 'vue-expandable-text-line'
-import ImgWithOverlay from './ImgTransOverlay'
+import ExpandableText from './ExpandableTextLine'
+import ImgWOverlay from './ImgTransOverlay'
 
 export default {
   name: 'Demo',
-  components: { ImgWithOverlay, ExpandableText },
+  components: { ImgWOverlay, ExpandableText },
 
   props: {
   },
@@ -39,11 +44,14 @@ export default {
 </script>
 
 <style lang='scss'>
-html {
+body {
   width: 100vw;
   height: 100vh;
-}
-body {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
     Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 }
@@ -57,9 +65,9 @@ body {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: -70% center;
-    background: red;
-    transform: rotate(15deg) scale(1.5);
+    object-position: 0% center;
+    background: rgb(136, 136, 136);
+    // transform: rotate(15deg) scale(1.5);
   }
 }
 .label {
@@ -72,12 +80,21 @@ body {
 }
 .footer {
   position: absolute;
+  width: 50%;
+  max-height: calc(100% - 40px);
   bottom: 10px;
   left: 50%;
   transform: translate(-50%, 0);
+  border-radius: 10px;
+}
+.expand-wrap {
   padding: 5px 10px;
-  min-height: 46px;
-  width: 50%;
-  border-radius: 30px;
+  max-height: 300px;
+  overflow: auto;
+}
+button {
+  position: absolute;
+  right: 10px;
+  top: 10px;
 }
 </style>

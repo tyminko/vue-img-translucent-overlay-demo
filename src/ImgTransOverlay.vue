@@ -45,6 +45,8 @@ export default {
     oSoftEdge: Boolean,
     color: { type: String, default: null },
 
+    scrollable: Boolean,
+
     updateOnWinResize: { type: Boolean, default: true }
   },
 
@@ -70,7 +72,7 @@ export default {
       filter += this.oSepia !== null ? ` sepia(${this.oSepia}%)` : ''
       return filter
     },
-    blurWidthFactor () { return this.oSoftEdge ? 1 : 1.5 },
+    blurWidthFactor () { return this.oSoftEdge ? 1 : 2 },
     styleBgElSizeStr () { return `calc(100% + ${this.oBlur * this.blurWidthFactor * 2}px)` },
     styleBgElPlacementStr () { return `-${this.oBlur * this.blurWidthFactor}px` }
   },
@@ -82,9 +84,9 @@ export default {
   mounted () {
     /** @type HTMLImageElement */
     this.img = this.$refs['img']
-    this.imgCSS = window.getComputedStyle(this.img)
     //
     this.img.addEventListener('load', () => {
+      this.imgCSS = window.getComputedStyle(this.img)
       this.update()
     })
     if (this.updateOnWinResize) {
@@ -92,14 +94,6 @@ export default {
         this.update()
       })
     }
-  },
-
-  updated () {
-    // this.$nextTick(() => {
-    //   /* DEBUG */
-    //   console.log(`%c %c  UPDATE: `, 'background:#ffbb00;color:#000', 'color:#00aaff')
-    //   this.update()
-    // })
   },
 
   methods: {
@@ -114,13 +108,22 @@ export default {
         bgEl = this.elements[key].bgEl
         bgImg = this.elements[key].bgImg
       } else {
+        // overlayWrap = overlayEl.querySelector(':scope > .io-bg-wrap')
         bgEl = overlayEl.querySelector(':scope > [data-io-bg-el]')
         if (!bgEl) {
+          // overlayWrap = document.createElement('div')
+          // overlayWrap.classList.add('io-bg-wrap')
+          // overlayEl.parentNode.insertBefore(overlayWrap, overlayEl)
+          // overlayWrap.appendChild(overlayEl)
+          // overlayEl.innerHTML = `<div class="io-bg-wrap">${overlayEl.innerHTML}</div>`
+
           bgEl = this.setupBgEl(overlayEl)
           bgImg = this.setupBgImg()
           bgEl.appendChild(bgImg)
           overlayEl.prepend(bgEl)
+          // overlayEl.prepend(overlayWrap)
         } else {
+          bgEl = overlayEl.querySelector(':scope > [data-io-bg-el]')
           bgImg = bgEl.querySelector(':scope > img')
           if (!bgImg) {
             bgImg = this.setupBgImg()
@@ -153,6 +156,7 @@ export default {
       style.width = this.styleBgElSizeStr
       style.height = this.styleBgElSizeStr
       style.borderRadius = `${window.getComputedStyle(overlayEl).borderRadius}`
+      style.overflow = 'hidden'
       style.zIndex = `-1`
 
       style.background = this.oFillColor
@@ -162,6 +166,28 @@ export default {
       style.filter = this.filteStr
 
       return bgEl
+    },
+
+    /**
+     * @param {HTMLElement} overlayEl
+     */
+    updateBgElPlacement (overlayEl) {
+      // const bgEl = overlayEl.querySelector(':scope > [data-io-bg-el]')
+      // if (!bgEl) return
+      // const s = bgEl.style
+      // const d = s.display
+      // s.display = 'none'
+      // const h = overlayEl.scrollHeight
+      // s.display = d
+      // const maxTop = h - overlayEl.getBoundingClientRect().height - this.oBlur * this.blurWidthFactor
+      // /* DEBUG */
+      // console.log(`%c %c maxTop: `, 'background:#ffbb00;color:#000', 'color:#00aaff', maxTop)
+      // const top = overlayEl.scrollTop - this.oBlur * this.blurWidthFactor
+      // /* DEBUG */
+      // console.log(`%c %c top: `, 'background:#ffbb00;color:#000', 'color:#00aaff', top)
+      // s.top = `${Math.min(maxTop, top)}px`
+      // /* DEBUG */
+      // console.log(`%c %c s.top: `, 'background:#ffbb00;color:#000', 'color:#00aaff', s.top)
     },
 
     /**
@@ -226,7 +252,7 @@ export default {
         'max-width',
         'max-height',
         'opacity']
-      this.imgCSS.forEach(rule => {
+      Array.from(this.imgCSS).forEach(rule => {
         if (excepts.indexOf(rule) > -1) return
         if (cssBgImg[rule] !== this.imgCSS[rule]) bgImg.style[rule] = this.imgCSS[rule]
       })
@@ -256,7 +282,10 @@ export default {
           this.addOverlayElementObserver(el)
         }
         if (!el.style.zIndex) el.style.zIndex = 0
-        el.style.overflow = this.oSoftEdge ? 'visible' : 'hidden'
+        const scrollable = el.classList.contains('io-scrollable')
+        el.style.overflow = this.oSoftEdge && !scrollable
+          ? 'visible'
+          : (scrollable ? 'auto' : 'hidden')
         this.updateOverlayEl(el)
       })
     },
@@ -268,21 +297,13 @@ export default {
       const { left, top, right, bottom } = el.getBoundingClientRect()
       const lastRect = observer.lastRect
       if (el.classList.contains('footer')) {
-        /* DEBUG */
-        console.log(`%c %c lastRect.top / top: `, 'background:#ffbb00;color:#000', 'color:#00aaff', `${lastRect.top} / ${top}`)
       }
       if (lastRect.left !== left ||
           lastRect.top !== top ||
           lastRect.right !== right ||
           lastRect.bottom !== bottom) {
-        /* DEBUG */
         const now = Date.now()
-        console.log(`%c %c this.iot: `, 'background:#ffbb00;color:#000', 'color:#00aaff', this.iot)
-        console.log(`%c %c now: `, 'background:#ffbb00;color:#000', 'color:#00aaff', now)
-        console.log(`%c %c observer.checkCount: `, 'background:#ffbb00;color:#000', 'color:#00aaff', observer.checkCount)
         if (!this.iot) this.iot = now
-        /* DEBUG */
-        console.log(`%c %c t: `, 'background:#ffbb00;color:#000', 'color:#00aaff', now - this.iot)
 
         this.updateOverlayEl(el)
         observer.lastRect = { left, top, right, bottom }
@@ -291,8 +312,6 @@ export default {
       } else {
         observer.checkCount += 1
       }
-      /* DEBUG */
-      console.log(`%c %c (observer.checkCount + 1) * 20: `, 'background:#ffbb00;color:#000', 'color:#00aaff', (observer.checkCount + 1) * 20)
       if (observer.checkCount < 10) {
         observer.checkTimeout = setTimeout(requestAnimationFrame(() => {
           this.checkForOverlayRectChage(el)
@@ -330,6 +349,15 @@ export default {
         checkCount: 0
       }
       this.observers[key].observer.observe(overlayEl, config)
+
+      // add scroll listener
+      if (overlayEl.classList.contains('io-scrollable')) {
+        overlayEl.addEventListener('scroll', () => {
+          requestAnimationFrame(() => {
+            this.updateBgElPlacement(overlayEl)
+          })
+        })
+      }
     },
 
     id (prefix) {
@@ -343,5 +371,22 @@ export default {
 .img-trans-overlay-wrap {
   position: relative;
   overflow: hidden;
+  .img-trans-overlays {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    .io-bg-wrap {
+      // position: absolute;
+      // top: 0;
+      // left: 0;
+      // width: 100%;
+      // height: 100px;
+      overflow: auto;
+      // pointer-events: none;
+    }
+  }
 }
 </style>
